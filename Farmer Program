@@ -1,0 +1,997 @@
+-- xmightymeatballx's configurable farmer program
+
+function save(table, filename)
+
+	while fs.exists(filename)
+	do print("File already exists!")
+	local filename = io.read()
+	end
+	
+
+local file = fs.open(filename,"w")
+file.write(textutils.serialize(table))
+file.close()
+end
+
+function load(cfgName)
+
+while not fs.exists(cfgName)
+do print("No file found!")	cfgName = io.read()
+end
+
+local file = fs.open(cfgName,"r")
+local data = file.readAll()
+cfg = textutils.unserialize(data)
+print(data) 
+io.read()
+file.close()
+
+end
+
+--- Turtle functions ---
+
+function go(count)
+		
+if outOfFuel then print("Movement cancelled!") return
+end
+
+	if turtle.getFuelLevel() == 0	
+		then print("Fuel level is low!") refuel() 
+			
+end		
+
+if count then 
+
+ for i = 1, count, 1
+  do if not turtle.forward() then print("Movement blocked!") sleep(1 * cfg["speed"]) go()
+end
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do if not turtle.forward() then print("Movement blocked!") sleep(1 * cfg["speed"]) go()
+end
+end
+end
+
+end
+
+function back(count)
+
+if outOfFuel then print("Movement cancelled!") return
+end
+
+	if turtle.getFuelLevel() == 0	
+	
+		then print("Fuel level is low!") refuel() 
+			
+end		
+
+if count then 
+
+ for i = 1, count, 1
+  do if not turtle.back() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do if not turtle.back() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+end
+
+end
+
+function up(count)
+
+if outOfFuel then print("Movement cancelled!") return
+end
+
+	if turtle.getFuelLevel() == 0	
+	
+		then print("Fuel level is low!") refuel()
+			
+end		
+
+if count then 
+
+ for i = 1, count, 1
+  do if not turtle.up() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do if not turtle.up() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+end
+
+end
+
+function dn(count)
+
+if outOfFuel then print("Movement cancelled!") return
+end
+
+	if turtle.getFuelLevel() == 0	
+	
+		then print("Fuel level is low!") refuel()
+			
+end		
+
+if count then 
+
+ for i = 1, count, 1
+  do if not turtle.down() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do if not turtle.down() then print("Movement blocked!")  sleep(1 * cfg["speed"]) go()
+end
+end
+end
+
+end
+
+function r(count)
+
+if count then 
+
+ for i = 1, count, 1
+  do turtle.turnRight()
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do turtle.turnRight()
+end
+
+end
+end
+
+function l(count)
+
+if count then 
+
+ for i = 1, count, 1
+  do turtle.turnLeft()
+end
+
+else count = 1 
+
+ for i = 1, count, 1
+  do turtle.turnLeft()
+end
+
+end
+end
+
+function refuel()
+
+cfg["fuelTarget"] = (cfg["length"]  * cfg["width"]) + (cfg["length"]  +  cfg["width"])   -- turtle will refuel when fuel level drops to this number
+
+fuel = {"minecraft:coal", "minecraft:stick"}     -- add fuels for inventory sorting
+
+print("Fuel level: ", turtle.getFuelLevel()) 	-- Always print fuel level when refuel() is called
+
+if turtle.getFuelLevel() > cfg["fuelTarget"]   -- We dont need it
+then 
+outOfFuel = false 
+NotEnoughFuel = false
+sleep(2) term.clear() 
+return end
+
+if turtle.getFuelLevel() < cfg["fuelTarget"] 	 -- We need fuel
+ then 
+	sleep(1) 
+	print("Fuel level below", cfg["fuelTarget"]) 
+	sleep(1)
+	print("Refueling..")
+	
+ 
+ 
+ -- check slot 16 first
+
+ turtle.select(16)
+
+ if turtle.getItemCount() > 0
+
+  then
+ 
+   for z, v in next, fuel 
+   
+    do 
+		
+	 local details = turtle.getItemDetail()
+	 if details.name == v or details.name == altfuel
+	  then -- turtle finds fuel and refuels successfully
+	  sleep(1) print("Fuel found!") repeat turtle.refuel(1) until turtle.getFuelLevel() >= cfg["fuelTarget"] + 1 or turtle.getItemCount() == 0 print("Fuel level: ", turtle.getFuelLevel()) return 	
+	 
+	 end
+   end
+ end
+ 
+
+			
+	if turtle.getItemCount() > 0	 -- turtle finds an item not on the fuels list and will empty slot
+			
+	 then
+			
+	 for i = 15, 1, -1
+			
+	  do 
+	  
+	  if turtle.getItemCount() > 0 then turtle.transferTo(i) 
+	  end
+	  
+	  end
+			
+	  if turtle.getItemCount() > 0 then turtle.dropDown()
+	  end			-- slot is now surely empty..
+		
+	end	
+	
+		
+		-- we have to search all inventory slots for fuel
+
+if turtle.getItemCount() == 0	 -- 16 is empty
+
+then sleep(0.5) print("Fuel slot 16 is empty.. searching inventory..") sleep(0.5)
+
+  for i = 16, 1, -1
+  
+   do turtle.select(i) sleep(0.1)
+  
+   if turtle.getItemCount() > 0
+	
+   then
+
+   for z, v in next, fuel 
+   
+    do 
+		
+	local details = turtle.getItemDetail()
+	if details.name == v
+	 then -- turtle finds fuel and moves it to slot 16
+	 sleep(0.5) print("Fuel found!") turtle.transferTo(16) turtle.select(16) repeat turtle.refuel(1) until turtle.getFuelLevel() >= cfg["fuelTarget"] + 1 or turtle.getItemCount() == 0 print("Fuel level: ", turtle.getFuelLevel()) return 	
+	end
+   end
+   end
+  end
+end
+
+		--- no listed fuel has been found, search for unlisted fuels.
+
+sleep(2) term.clear() print("No listed fuels found, searching for unlisted fuels.") sleep(1)
+
+turtle.select(16)
+
+  for i = 16, 1, -1
+  
+   do turtle.select(i) sleep(0.1)
+  
+   if turtle.getItemCount() > 0
+	
+   then 
+	
+	if turtle.refuel(1)
+	
+	 then 
+		
+		local details = turtle.getItemDetail()
+		print("Unlisted fuel found: ", details.name)
+		
+		if turtle.getItemCount() > 0
+		then 
+			turtle.transferTo(16)
+			altfuel = details.name
+			
+	 return
+		
+		end
+	 
+	 end
+   
+   end
+  
+  end
+
+-- NO FUELS FOUND!!
+
+
+if turtle.getFuelLevel() < cfg["fuelTarget"] 
+then 
+	NotEnoughFuel = true
+end
+
+if turtle.getFuelLevel() == 0
+then 
+	outOfFuel = true
+end
+
+term.clear() print("No fuels found!") return
+
+end -- do we need fuel?
+end
+
+function RunProgram()
+
+term.clear()
+print("Enter program name")
+print("i.e. Farmer")
+
+
+local program = io.read()
+
+-- TEST PROGRAM --
+
+if program == "test"
+then test() return
+end
+
+-- FARMER PROGRAM --
+
+if program == "Farmer" or "farmer" or "farm"
+then 
+
+AutoRunProgram()
+Config()
+
+if AutoRun then
+
+repeat
+FarmerProgram()
+print("Waiting for ", AutoDelay, " seconds.")
+sleep(5)
+for i = AutoDelay, 1, -1
+do
+	print(AutoDelay, " seconds remaining.") sleep(1)
+end
+
+until false
+
+else FarmerProgram() return
+
+end
+end
+
+end
+
+function AutoRun()
+
+
+term.clear()
+print("Would you like the program to run continuously?")
+
+local reply = io.read()
+
+if reply == "Yes" or reply == "Y" or reply == "y" or reply == "yes"
+then
+
+term.clear()
+print("Enter a value in seconds to wait before starting again.")
+
+
+AutoDelay = io.read()
+AutoDelay = tonumber(AutoDelay)
+term.clear()
+AutoRun = true print("AutoRun enabled!") sleep(1)
+
+elseif reply == "No" or reply == "no" or reply == "N" or reply == "n" 
+then  AutoRun = false term.clear() print("AutoRun disabled!") sleep(1)
+
+end
+
+end
+
+function test()
+print("this is a test")
+end
+
+--- PROGRAMS ---
+
+function FarmerProgram() ---- this is the program
+
+function Config()  		-- loads saved configs
+
+term.clear()
+print("Would you like to load an existing config?")
+
+local reply = io.read()
+
+if reply == "Yes" or reply == "Y" or reply == "y" or reply == "yes"
+then reply = true
+elseif reply == "No" or reply == "no" or reply == "N" or reply == "n" 
+then reply = false
+end
+
+if reply == true   --- load existing
+then
+
+term.clear()
+print("Enter config name")
+print("farm, farm1, etc")
+
+local cf = io.read()
+load(cf)
+
+end
+
+if reply == false  --- Create new config and start over
+then FarmerCfgCreator() Config()
+end
+
+
+
+--[[ default config, a list of alll needed variables
+
+cfg = {}
+
+	cfg["length"] = 4		
+	
+	cfg["width"] = 4			
+	
+	cfg["pattern"] = 'rows' 			-- currently rows is the only option, spiral coming soon
+	
+	cfg["startingside"] = 'right' -- for "rows" only ! right or left
+	
+	cfg["crop"] = "minecraft:wheat" 		-- used for return to home features
+	
+	cfg["seed"] = "minecraft:wheat_seeds"	-- the seed the turtle looks for when planting
+	
+	cfg["storage"] = "minecraft:chest"    	-- change to another storage block
+		
+	cfg["fuelTarget"] = (cfg["length"]  * cfg["width"]) + (cfg["length"]  +  cfg["width"])   -- turtle will refuel when fuel level drops to this number
+
+	cfg["speed"] = 1
+	
+	cfg["consoleinfo"] = true
+]]--
+
+end -- EoF
+
+function FarmerCfgCreator()  -- creates and saves configs
+
+term.clear()
+print("Farmer config creator!") sleep(3)
+
+cfg = {} 
+
+	term.clear()
+	print("Enter a length")
+	
+	local length = io.read()
+	
+	cfg["length"] = tonumber(length)
+
+	term.clear()
+	print("Enter a width")
+	
+	local width = io.read()
+	
+	cfg["width"] = tonumber(width)		
+	
+	cfg["pattern"] = 'rows' 			-- currently rows is the only option, spiral coming soon
+	
+	term.clear()
+	print("Enter starting side, left or right")
+	
+	local side = io.read()
+	
+	if side == "r" or side == "R" or side == "right" or side == "Right" or side =="RIGHT" then sSide = 'right'
+	elseif side ==  "l" or side == "L" or side == "left" or side == "Left" or side == "LEFT" then sSide = 'left'
+	end
+	
+	cfg["startingside"] = sSide  -- for "rows" only ! right or left
+	
+	term.clear()
+	print("Enter a crop name, i.e minecraft:wheat")
+	
+	local cropx = io.read()
+	
+	if cropx == "wheat" or cropx == "minecraft:wheat" then crop = "minecraft:wheat"
+	elseif cropx == "carrot" or cropx == "minecraft:carrot" then crop = "minecraft:carrot"
+	elseif cropx == "potato" or cropx == "minecraft:potato" then crop = "minecraft:potato"
+	end
+	
+	cfg["crop"] = crop	-- used for return to home features
+
+	if crop == "wheat" or crop == "minecraft:wheat" then seed = "minecraft:wheat_seeds"
+	elseif crop == "carrot" or crop ==  "minecraft:carrot" then seed = "minecraft:carrot"
+	elseif crop == "potato" or crop ==  "minecraft:potato" then seed = "minecraft:potato"
+	
+	else 	
+	term.clear()
+	print("Enter a seed name, i.e minecraft:wheat_seeds") 
+	local seed = io.read()
+	end
+	
+	cfg["seed"] = seed	-- the seed the turtle looks for when planting
+	
+	term.clear()
+	print("If you'd like the turtle to use a different storage container, please enter its name here i.e minecraft:chest")
+	
+	local storage = io.read()
+	
+	if storage == "chest" or "minecraft:chest" or " " then storage = "minecraft:chest"
+	end
+	
+	cfg["storage"] = storage    	-- change to another storage block
+		
+	cfg["fuelTarget"] = (cfg["length"]  * cfg["width"]) + (cfg["length"]  +  cfg["width"])   -- turtle will refuel when fuel level drops to this number
+
+	cfg["speed"] = 1
+	
+	cfg["consoleinfo"] = true
+	
+	write(textutils.serialize(cfg))
+	
+	io.read()
+	print(" ")
+	print("If this is correct, please enter a file name")
+	
+	local filename = io.read()
+	 
+	save(cfg, filename)
+	
+end
+
+function checkforseeds()
+-- seeds
+
+
+turtle.select(1)
+if turtle.getItemCount() > 0
+then
+	local details = turtle.getItemDetail()
+	if details.name == cfg["seed"]
+	then return
+	else print("Clearing slot 1..") sleep(0.2)
+		for i = 2, 16, 1
+		do turtle.transferTo(i)
+		if turtle.getItemCount() > 0 then turtle.dropDown()
+	end
+	end
+	print("No seeds in slot 1..") sleep(0.2) print("Checking inventory for seeds..")
+	
+	for i = 1, 16, 1
+	do turtle.select(i) sleep(0.2)
+	if turtle.getItemCount() > 0
+	then
+	local details = turtle.getItemDetail()
+	if details.name == cfg["seed"]
+	then print("Seeds found! Moving them to slot 1..") turtle.transferTo(1) sleep(2) turtle.select(1) local x = turtle.getItemCount() term.clear() print("Seeds: ", x) return
+	end
+	end
+	end
+	end
+elseif turtle.getItemCount() == 0 
+then 
+	print("No seeds in slot 1..") sleep(0.2) print("Checking inventory for seeds..")
+	for i = 1, 16, 1
+	do turtle.select(i) sleep(0.2)
+	if turtle.getItemCount() > 0
+	then
+	local details = turtle.getItemDetail()
+	if details.name == cfg["seed"]
+	then print("Seeds found! Moving them to slot 1..") turtle.transferTo(1) sleep(2) turtle.select(1) local x = turtle.getItemCount() term.clear() print("Seeds: ", x) return
+	elseif i == 16 then sleep(2) print("No seeds found!")
+end			
+end
+end
+end
+end
+
+function harvest()
+
+sleep(0.3 * cfg["speed"])
+
+turtle.digDown() 
+
+sleep(0.2 * cfg["speed"])
+
+plant()
+
+end
+
+function plant()
+
+checkforseeds()
+
+turtle.select(1)
+
+if turtle.placeDown() then sleep(0.5 * cfg["speed"])
+else print("Failed to plant seed!") sleep(2 * cfg["speed"])
+
+end
+end
+
+function farm() 	--- this is the main function
+	
+-- Beginning of program
+
+term.clear() print("Farm() loading...") sleep(2 * cfg["speed"]) term.clear()
+turtle.select(1)
+
+-- Always attempt to refuel to the min target before farming, set NotEnoughFuel flag if
+-- the minimun target isnt met
+
+refuel()
+
+-- Abort if refuel set NotEnoughFuel to true, Otherwise check for starting spot
+
+if NotEnoughFuel then print("Farming operation aborted! Not enough fuel to complete!") return 
+else
+
+	term.clear() print("Checking for chest...") sleep(1)
+	
+		  local success, data = turtle.inspectDown()
+			if success and data.name == cfg["storage"] 	
+				then term.clear() print("Chest Detected!") sleep(0.5) docked = true sleep(1)
+			else term.clear() print("No chest detected!") sleep(0.5) docked = false sleep(1)
+			end
+end
+
+-- Not docked, try to find starting chest and get docked
+
+if docked == false then repeat farmerfindhome() 
+
+	term.clear() print("Checking for chest...")
+	sleep(1)
+	
+		  local success, data = turtle.inspectDown()
+			if success and data.name == cfg["storage"] 	
+				then term.clear() print("Chest Detected!") sleep(0.5) docked = true sleep(1)
+			else term.clear() print("No chest detected!") sleep(0.5) docked = false sleep(1)
+			end
+
+until docked == true or outOfFuel
+end	
+
+-- We're docked and We're gonna farm 
+
+if docked == true
+then
+
+-- Starting farm!
+
+docked = false checkforseeds() sleep(2) term.clear() print("Farming a ", cfg["length"], "x", cfg["width"], " area!") sleep(1)
+turns = 0
+complete = false
+remaining = (cfg["length"] * cfg["width"])
+
+for a = 1, cfg["width"], 1 	-- the rows
+
+do 
+
+local success, data = turtle.inspectDown() 
+
+	if success and data.metadata == 7 
+	then 
+		harvest()
+	elseif success
+	then
+		sleep(0.2 * cfg["speed"])
+	elseif not turtle.detectDown() 
+	then
+		plant()
+	end
+
+
+for b = 1, cfg["length"] -1    -- each block
+do 	go()
+	
+-- persistant console info
+
+if cfg["consoleinfo"] == true
+then
+remaining = remaining - 1
+
+term.clear()
+print("Name: ", os.getComputerLabel())
+print(" ")
+print("Fuel level: ", turtle.getFuelLevel())
+print(" ")
+print("Harvesting: ", cfg["crop"])
+print(" ")
+print("Size: ", cfg["width"], "x", cfg["length"]) local a = (cfg["length"] * cfg["width"]) -1
+print(" ")
+print("Remaining blocks: ", remaining)
+print(" ")	
+
+end
+
+-- harvest and plant if grown
+	
+local success, data = turtle.inspectDown() 
+
+	if success and data.metadata == 7 
+	then 
+		harvest()
+	elseif success
+	then
+		sleep(0.2 * cfg["speed"])
+	elseif not turtle.detectDown() 
+	then
+		plant()
+	end
+end 
+
+--first turn or last turn
+
+if turns == 0 and cfg["startingside"] == 'right'
+		then nextturn = 'left'
+			
+	elseif turns == 0 and cfg["startingside"] == 'left'
+		then nextturn = 'right'
+		
+	elseif turns == cfg["width"] - 1
+		then print("Farming Complete!") complete = true		
+end
+
+--next row
+
+if not complete
+then
+	if nextturn == 'left'
+		then l() sleep(0.3 * cfg["speed"]) go() sleep(0.3 * cfg["speed"]) l()
+		nextturn = 'right' 
+		turns = (turns + 1) 
+		
+	elseif nextturn == 'right' 
+		then r() sleep(0.3 * cfg["speed"]) go() sleep(0.3 * cfg["speed"]) r() 
+		nextturn = 'left' 
+		turns = (turns + 1) 
+	end		
+
+end
+
+end -- line 563 for loop complete
+
+end -- Job complete! if docked @ line 552
+
+-- finding his way back to chest
+
+if complete		
+			then
+					if cfg["startingside"] == 'right' and nextturn == 'right' -- near
+					then l()
+					
+						for a = 1, cfg["width"] - 1
+						do go()
+						end
+					
+					l() 
+					
+					elseif cfg["startingside"] == 'right' and nextturn == 'left' -- far
+					then r()
+					
+						for a = 1, cfg["width"] - 1
+						do go()
+						end
+						
+						r()
+						
+						for a = 1, cfg["length"] - 1
+						do go()
+						end
+					
+					r() r() 
+					
+					elseif cfg["startingside"] == 'left' and nextturn == 'left' -- near
+					then r() 
+					
+						for a = 1, cfg["width"] - 1
+						do go()
+						end
+					
+					r() 
+					
+					elseif cfg["startingside"] == 'left' and nextturn == 'right' -- far
+					then l() 
+					
+						for a = 1, cfg["width"] - 1
+						do go()
+						end
+						
+						l()
+						
+						for a = 1, cfg["length"] - 1
+						do go()
+						end
+						
+					l() l() 
+						
+					end	
+
+			term.clear() print("Checking for chest...") -- verify we made it to chest
+			sleep(1)
+	
+			local success, data = turtle.inspectDown()
+			if success and data.name == cfg["storage"] 	
+				then term.clear() print("Chest Detected!") sleep(0.5) docked = true sleep(1)
+			else term.clear() print("No chest detected!") sleep(0.5) docked = false sleep(1)
+			end
+			
+end
+
+-- Restocking slot 1 with seeds
+
+if docked == true 
+then
+
+if turtle.getItemCount() < 64
+then 
+	for i = 2, 16, 1
+	do turtle.select(i) sleep(0.1)
+		if turtle.getItemCount() > 0
+		then
+			local details = turtle.getItemDetail()
+			if details.name == cfg["seed"]
+	then turtle.transferTo(1) turtle.select(1) local x = turtle.getItemCount() print("Seeds: ", x)
+	end
+	end
+	end
+	end
+	end
+	
+-- Putting the bounty in the barrel (:
+
+if docked == true 
+then
+
+print("Clearing inventory..")
+
+for i = 2, 15, 1
+do turtle.select(i) turtle.dropDown()
+end
+
+end
+
+-- Ending the program
+
+sleep(2 * cfg["speed"]) term.clear() print("Standby..") sleep(2 * cfg["speed"])
+
+
+end --EoF farm()
+
+function farmerfindhome()
+
+if docked == false 
+ then
+ 
+ if outOfFuel then return end
+ 
+	local success, data = turtle.inspectDown()
+
+	if success and data.name == cfg["crop"]
+	then print("I am on a farm")
+	elseif not success
+		then plant() return		-- turtle is not on farm
+	end
+	
+	if not turtle.detect()
+	then
+	
+	repeat
+	
+	local success, data = turtle.inspectDown()
+	
+		if success and data.name == cfg["crop"] 		-- above crop
+		then sleep(0.3 * cfg["speed"]) go()
+		end
+		
+	until not success or data.name ~= cfg["crop"] or turtle.detect() -- something changed
+	
+	end	
+	
+		local success, data = turtle.inspectDown()
+	
+		if success and data.name == cfg["crop"] -- it was a wall, still above crop
+		then 
+			if cfg["startingside"] == 'right'
+			then l() return
+		
+			elseif cfg["startingside"] == 'left'
+			then r() return
+			end
+			
+		end
+	
+		if success and data.name ~= cfg["crop"] -- turtle detects down but not a crop, could be the chest
+		then 
+			
+			local success, data = turtle.inspectDown()
+			
+			if success and data.name == cfg["storage"]
+			then 
+			
+				if cfg["startingside"] == 'right'
+				then l() return
+		
+				elseif cfg["startingside"] == 'left'
+				then r() return
+				end
+			
+			else		-- turtle is detecting a block outside of the farm area
+		
+			sleep(0.3 * cfg["speed"]) back()
+				if cfg["startingside"] == 'right'
+				then l() return
+		
+				elseif cfg["startingside"] == 'left'
+				then r() return
+				end
+			end	
+		end
+		
+		if not success
+		then plant()
+		
+		if turtle.detectDown()
+		then return
+		
+		else
+			sleep(0.3 * cfg["speed"]) back()
+				if cfg["startingside"] == 'right'
+				then l() return
+		
+				elseif cfg["startingside"] == 'left'
+				then r() return
+				end
+			end
+		end
+	end
+
+end
+
+
+--- FARMER PROGRAM EXECUTES ---
+term.clear()
+write("Welcome to xMightyMeatballx's configurable farmer program!")
+io.read()
+AutoRun()
+Config()
+
+-- Auto run loops..
+
+if AutoRun then
+
+repeat
+
+farm()
+
+print("Waiting for ", AutoDelay, " seconds.")
+sleep(2)
+
+local timer = AutoDelay
+
+for i = AutoDelay, 1, -1
+do
+	term.clear()
+	timer = timer - 5
+	print(timer, " seconds remaining.") sleep(1)
+end
+
+until false
+
+else farm() return
+
+end
+
+farm()
+
+end
+
+---- STARTUP EXECUTE ----
+
+FarmerProgram()
